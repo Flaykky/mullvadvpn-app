@@ -1,3 +1,5 @@
+#[cfg(target_os = "windows")]
+use crate::windows;
 use crate::Result;
 use std::{env, path::PathBuf};
 
@@ -10,7 +12,7 @@ pub fn log_dir() -> Result<PathBuf> {
     }
     #[cfg(target_os = "windows")]
     {
-        crate::create_dir(get_log_dir()?, true)
+        crate::create_and_return(get_log_dir, Some(windows::UserPermissions::read_only()))
     }
 }
 

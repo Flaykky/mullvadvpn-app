@@ -1,6 +1,10 @@
 #![cfg(not(target_os = "android"))]
 
 use std::io;
+use std::path::PathBuf;
+
+#[cfg(windows)]
+use crate::windows::create_dir_recursive_with_permissions;
 
 #[cfg(windows)]
 pub mod windows;
@@ -50,7 +54,52 @@ pub enum Error {
 use unix::create_dir;
 
 #[cfg(windows)]
-use windows::create_dir;
+pub const PRODUCT_NAME: &str = "Mullvad VPN";
+
+#[cfg(windows)]
+fn get_allusersprofile_dir() -> Result<PathBuf> {
+    match std::env::var_os("ALLUSERSPROFILE") {
+        Some(dir) => Ok(PathBuf::from(&dir)),
+        None => Err(Error::NoProgramDataDir),
+    }
+}
+
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+fn create_and_return(
+    dir_fn: fn() -> Result<PathBuf>,
+    permissions: Option<std::fs::Permissions>,
+) -> Result<PathBuf> {
+    let dir = dir_fn()?;
+    std::fs::create_dir_all(&dir)
+        .map_err(|e| Error::CreateDirFailed(dir.display().to_string(), e))?;
+    if let Some(permissions) = permissions {
+        std::fs::set_permissions(&dir, permissions)
+            .map_err(|e| Error::SetDirPermissionFailed(dir.display().to_string(), e))?;
+    }
+    Ok(dir)
+}
+
+/// Create a directory Windows. If `user_permissions` is `None`, the directory will be created
+/// without modifying permissions, using [`std::fs::create_dir_all`]. If `user_permissions` is
+/// `Some`, the directory will be created with the specified permissions.
+#[cfg(windows)]
+fn create_and_return(
+    dir_fn: fn() -> Result<PathBuf>,
+    user_permissions: Option<windows::UserPermissions>,
+) -> Result<PathBuf> {
+    let dir = dir_fn()?;
+    if let Some(user_permissions) = user_permissions {
+        create_dir_recursive_with_permissions(&dir, user_permissions)?;
+    } else {
+        std::fs::create_dir_all(&dir).map_err(|e| {
+            Error::CreateDirFailed(
+                format!("Could not create directory at {}", dir.display()),
+                e,
+            )
+        })?;
+    }
+    Ok(dir)
+}
 
 mod cache;
 pub use crate::cache::{cache_dir, get_cache_dir, get_default_cache_dir};
