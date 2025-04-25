@@ -423,7 +423,7 @@ impl WireguardMonitor {
         let should_negotiate_ephemeral_peer = config.quantum_resistant || config.daita;
 
         let (cancel_token, cancel_receiver) = connectivity::CancelToken::new();
-        let mut connectivity_monitor = connectivity::Check::new(
+        let connectivity_monitor = connectivity::Check::new(
             config.ipv4_gateway,
             args.retry_attempt,
             cancel_receiver.clone(),
@@ -480,27 +480,6 @@ impl WireguardMonitor {
             event_hook
                 .on_event(TunnelEvent::InterfaceUp(metadata.clone(), allowed_traffic))
                 .await;
-
-            let lock = tunnel.lock().await;
-            let borrowed_tun = lock.as_ref().expect("The tunnel was dropped unexpectedly");
-            match connectivity_monitor
-                .establish_connectivity(borrowed_tun.as_ref())
-                .await
-            {
-                Ok(true) => Ok(()),
-                Ok(false) => {
-                    log::warn!("Timeout while checking tunnel connection");
-                    Err(CloseMsg::PingErr)
-                }
-                Err(error) => {
-                    log::error!(
-                        "{}",
-                        error.display_chain_with_msg("Failed to check tunnel connection")
-                    );
-                    Err(CloseMsg::PingErr)
-                }
-            }?;
-            drop(lock);
 
             if should_negotiate_ephemeral_peer {
                 log::info!("negotiating ephemeral peer");
@@ -1040,6 +1019,7 @@ impl WireguardMonitor {
     }
 
     /// Replace default (0-prefix) routes with more specific routes.
+    #[cfg(feature = "boringtun")]
     fn replace_default_prefixes(network: ipnetwork::IpNetwork) -> Vec<ipnetwork::IpNetwork> {
         #[cfg(windows)]
         if network.prefix() == 0 {
