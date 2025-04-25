@@ -203,17 +203,18 @@ impl WgGoTunnelState {
     fn set_config(&mut self, config: Config) -> Result<()> {
         let wg_config_str = config.to_userspace_format();
 
+        log::info!("set_config:\n{}", wg_config_str.to_string_lossy());
         self.tunnel_handle
             .set_config(&wg_config_str)
             .map_err(|_| TunnelError::SetConfigError)?;
-
-        #[cfg(target_os = "android")]
-        let tun_provider = self.tun_provider.clone();
+        log::info!("set_config done");
 
         // When reapplying the config, the endpoint socket may be discarded
         // and needs to be excluded again
         #[cfg(target_os = "android")]
         {
+            let tun_provider = self.tun_provider.clone();
+
             let socket_v4 = self.tunnel_handle.get_socket_v4();
             let socket_v6 = self.tunnel_handle.get_socket_v6();
             let mut provider = tun_provider.lock().unwrap();
@@ -629,6 +630,9 @@ impl Tunnel for WgGoTunnel {
             })
             .ok_or(TunnelError::GetConfigError)?
             .map_err(|error| TunnelError::StatsError(BoxedError::new(error)))
+            .inspect(|stats| {
+                log::info!("stats: {stats:?}");
+            })
     }
 
     fn set_config(

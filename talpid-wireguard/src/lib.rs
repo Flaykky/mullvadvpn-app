@@ -442,18 +442,20 @@ impl WireguardMonitor {
             .map(Box::new)? as Box<dyn Tunnel>;
 
         #[cfg(not(feature = "boringtun"))]
-        let tunnel = args.runtime.block_on(Self::open_wireguard_go_tunnel(
-            &config,
-            log_path,
-            args.tun_provider.clone(),
-            args.route_manager,
-            // In case we should negotiate an ephemeral peer, we should specify via AllowedIPs
-            // that we only allows traffic to/from the gateway. This is only needed on Android
-            // since we lack a firewall there.
-            should_negotiate_ephemeral_peer,
-            cancel_receiver,
-        ))
-        .map(Box::new)? as Box<dyn Tunnel>;
+        let tunnel = args
+            .runtime
+            .block_on(Self::open_wireguard_go_tunnel(
+                &config,
+                log_path,
+                args.tun_provider.clone(),
+                args.route_manager,
+                // In case we should negotiate an ephemeral peer, we should specify via AllowedIPs
+                // that we only allows traffic to/from the gateway. This is only needed on Android
+                // since we lack a firewall there.
+                should_negotiate_ephemeral_peer,
+                cancel_receiver,
+            ))
+            .map(Box::new)? as Box<dyn Tunnel>;
 
         let iface_name = tunnel.get_interface_name();
         let tunnel = Arc::new(AsyncMutex::new(Some(tunnel)));
@@ -501,6 +503,7 @@ impl WireguardMonitor {
             drop(lock);
 
             if should_negotiate_ephemeral_peer {
+                log::info!("negotiating ephemeral peer");
                 let ephemeral_obfs_sender = close_obfs_sender.clone();
 
                 if let Err(e) = ephemeral::config_ephemeral_peers(
@@ -528,8 +531,10 @@ impl WireguardMonitor {
                         Self::allowed_traffic_after_tunnel_config(),
                     ))
                     .await;
+                log::info!("done negotiating ephemeral peer");
             }
 
+            log::info!("tunnel up");
             let metadata = Self::tunnel_metadata(&iface_name, &config);
             event_hook.on_event(TunnelEvent::Up(metadata)).await;
 
@@ -796,8 +801,8 @@ impl WireguardMonitor {
         #[cfg(target_os = "windows")]
         let tunnel =
             wireguard_go::WgGoTunnel::start_tunnel(config, log_path, route_manager, setup_done_tx)
-            .await
-            .map_err(Error::TunnelError)?;
+                .await
+                .map_err(Error::TunnelError)?;
 
         // Android uses multihop implemented in Mullvad's wireguard-go fork. When negotiating
         // with an ephemeral peer, this multihop strategy require us to restart the tunnel

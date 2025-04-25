@@ -95,6 +95,8 @@ async fn config_ephemeral_peers_inner(
     close_obfs_sender: sync_mpsc::Sender<CloseMsg>,
     #[cfg(target_os = "android")] tun_provider: Arc<Mutex<TunProvider>>,
 ) -> Result<(), CloseMsg> {
+    log::info!("config_ephemeral_peers_inner {config:?}");
+
     let ephemeral_private_key = PrivateKey::new_from_random();
     let close_obfs_sender = close_obfs_sender.clone();
 
@@ -110,7 +112,7 @@ async fn config_ephemeral_peers_inner(
 
     let mut daita = exit_ephemeral_peer.daita;
 
-    log::debug!("Retrieved ephemeral peer");
+    log::debug!("Retrieved ephemeral exit peer");
 
     if config.is_multihop() {
         // Set up tunnel to lead to entry
@@ -131,6 +133,9 @@ async fn config_ephemeral_peers_inner(
             &tun_provider,
         )
         .await?;
+
+        log::info!("entry_config {entry_config:#?}");
+
         let entry_ephemeral_peer = request_ephemeral_peer(
             retry_attempt,
             &entry_config,
@@ -153,6 +158,8 @@ async fn config_ephemeral_peers_inner(
 
     config.tunnel.private_key = ephemeral_private_key;
 
+    log::info!("reconfigure_tunnel again config: {config:?}");
+
     *config = reconfigure_tunnel(
         tunnel,
         config.clone(),
@@ -162,6 +169,8 @@ async fn config_ephemeral_peers_inner(
         &tun_provider,
     )
     .await?;
+
+    log::info!("reconfigure_tunnel again after config: {config:?}");
 
     if config.daita {
         let Some(daita) = daita else {
