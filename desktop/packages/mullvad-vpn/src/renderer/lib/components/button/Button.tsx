@@ -60,6 +60,11 @@ export const StyledButton = styled(ButtonBase)<
       --radius: ${styles.radius};
       --size: ${size};
       --width: ${width};
+      --transition-duration: 150ms;
+
+      @media (prefers-reduced-motion: no-preference) {
+        transition: background var(--transition-duration) ease;
+      }
 
       display: flex;
       flex: var(--size);
@@ -73,19 +78,21 @@ export const StyledButton = styled(ButtonBase)<
       border-radius: var(--radius);
       background: var(--background);
 
-      &:not(:disabled):hover {
+      &&:not(:disabled):hover {
+        --transition-duration: 0;
         background: var(--hover);
       }
 
       &&:not(:disabled):active {
+        --transition-duration: 0;
         background: var(--pressed);
       }
 
-      &:disabled {
+      &&:disabled {
         background: var(--disabled);
       }
 
-      &:focus-visible {
+      &&:focus-visible {
         outline: 2px solid ${colors.white};
         outline-offset: 2px;
       }
