@@ -17,16 +17,19 @@ const styles = {
     primary: {
       background: colors.blue,
       hover: colors.blue60,
+      pressed: colors.blue40,
       disabled: colors.blue40,
     },
     success: {
       background: colors.green,
       hover: colors.green80,
+      pressed: colors.green40,
       disabled: colors.green40,
     },
     destructive: {
       background: colors.red,
       hover: colors.red80,
+      pressed: colors.red40,
       disabled: colors.red40,
     },
   },
@@ -49,6 +52,7 @@ export const StyledButton = styled(ButtonBase)<ButtonProps>`
     return css`
       --background: ${variant.background};
       --hover: ${variant.hover};
+      --pressed: ${variant.pressed};
       --disabled: ${variant.disabled};
       --radius: ${styles.radius};
       --size: ${size};
@@ -68,6 +72,10 @@ export const StyledButton = styled(ButtonBase)<ButtonProps>`
 
       &:not(:disabled):hover {
         background: var(--hover);
+      }
+
+      &&:not(:disabled):active {
+        background: var(--pressed);
       }
 
       &:disabled {
