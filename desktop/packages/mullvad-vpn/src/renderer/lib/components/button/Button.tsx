@@ -2,6 +2,7 @@ import React, { forwardRef } from 'react';
 import styled, { css } from 'styled-components';
 
 import { colors, Radius, spacings } from '../../foundations';
+import { TransientProps } from '../../types';
 import { ButtonBase } from './ButtonBase';
 import { ButtonProvider } from './ButtonContext';
 import { ButtonIcon, ButtonText, StyledButtonIcon, StyledButtonText } from './components';
@@ -43,11 +44,13 @@ const styles = {
   },
 };
 
-export const StyledButton = styled(ButtonBase)<ButtonProps>`
-  ${({ width: sizeProp = 'fill', variant: variantProp = 'primary' }) => {
-    const variant = styles.variants[variantProp];
-    const size = styles.flex[sizeProp];
-    const width = styles.widths[sizeProp];
+export const StyledButton = styled(ButtonBase)<
+  TransientProps<Pick<ButtonProps, 'width' | 'variant'>>
+>`
+  ${({ $width = 'fill', $variant = 'primary' }) => {
+    const variant = styles.variants[$variant];
+    const size = styles.flex[$width];
+    const width = styles.widths[$width];
 
     return css`
       --background: ${variant.background};
@@ -118,12 +121,12 @@ export const StyledButton = styled(ButtonBase)<ButtonProps>`
 `;
 
 const ForwardedButton = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { children, disabled = false, style, ...props },
+  { children, disabled = false, width, variant, style, ...props },
   ref,
 ) {
   return (
     <ButtonProvider disabled={disabled}>
-      <StyledButton ref={ref} disabled={disabled} {...props}>
+      <StyledButton ref={ref} disabled={disabled} $variant={variant} $width={width} {...props}>
         {children}
       </StyledButton>
     </ButtonProvider>
