@@ -73,7 +73,6 @@ class ConnectionTest : EndToEndTest() {
         assertEquals(result.ip, outIpv4Address)
     }
 
-    @Disabled
     @Test
     @HasDependencyOnLocalAPI
     @ClearFirewallRules
@@ -111,7 +110,6 @@ class ConnectionTest : EndToEndTest() {
         }
     }
 
-    @Disabled
     @Test
     @HasDependencyOnLocalAPI
     @ClearFirewallRules
@@ -212,8 +210,7 @@ class ConnectionTest : EndToEndTest() {
             clickDisconnect()
         }
     }
-
-    @Disabled
+    
     @Test
     @HasDependencyOnLocalAPI
     @ClearFirewallRules
