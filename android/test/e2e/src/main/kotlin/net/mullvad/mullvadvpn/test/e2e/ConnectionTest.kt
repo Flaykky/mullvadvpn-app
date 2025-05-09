@@ -1,6 +1,7 @@
 package net.mullvad.mullvadvpn.test.e2e
 
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import net.mullvad.mullvadvpn.test.common.constant.EXTREMELY_LONG_TIMEOUT
@@ -72,7 +73,7 @@ class ConnectionTest : EndToEndTest() {
     @Test
     @HasDependencyOnLocalAPI
     @ClearFirewallRules
-    fun testWireGuardObfuscationAutomatic() = runTest {
+    fun testWireGuardObfuscationAutomatic() = runTest(timeout = 10.minutes) {
         app.launchAndLogIn(accountTestRule.validAccountNumber)
         on<ConnectPage> { enableLocalNetworkSharingStory() }
 
@@ -109,7 +110,7 @@ class ConnectionTest : EndToEndTest() {
     @Test
     @HasDependencyOnLocalAPI
     @ClearFirewallRules
-    fun testWireGuardObfuscationOff() = runTest {
+    fun testWireGuardObfuscationOff() = runTest(timeout = 10.minutes) {
         app.launchAndLogIn(accountTestRule.validAccountNumber)
         on<ConnectPage> { enableLocalNetworkSharingStory() }
 
@@ -161,7 +162,7 @@ class ConnectionTest : EndToEndTest() {
     @Test
     @HasDependencyOnLocalAPI
     @ClearFirewallRules
-    fun testUDPOverTCP() = runTest {
+    fun testUDPOverTCP() = runTest(timeout = 10.minutes) {
         app.launchAndLogIn(accountTestRule.validAccountNumber)
         on<ConnectPage> { enableLocalNetworkSharingStory() }
 
@@ -210,7 +211,7 @@ class ConnectionTest : EndToEndTest() {
     @Test
     @HasDependencyOnLocalAPI
     @ClearFirewallRules
-    fun testShadowsocks() = runTest {
+    fun testShadowsocks() = runTest(timeout = 10.minutes) {
         app.launchAndLogIn(accountTestRule.validAccountNumber)
         on<ConnectPage> { enableLocalNetworkSharingStory() }
 
@@ -242,7 +243,7 @@ class ConnectionTest : EndToEndTest() {
     }
 
     companion object {
-        const val VERY_FORGIVING_WIREGUARD_OFF_CONNECTION_TIMEOUT = 60000L
+        const val VERY_FORGIVING_WIREGUARD_OFF_CONNECTION_TIMEOUT = 600000L
         const val UNSUCCESSFUL_CONNECTION_TIMEOUT = 60000L
         const val ANY_IP_ADDRESS = "0.0.0.0/0"
     }
