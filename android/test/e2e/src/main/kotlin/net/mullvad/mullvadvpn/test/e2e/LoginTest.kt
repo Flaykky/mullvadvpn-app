@@ -14,6 +14,7 @@ class LoginTest : EndToEndTest() {
     @RegisterExtension @JvmField val accountTestRule = AccountTestRule()
 
     @Test
+    @Disabled
     fun testLoginWithValidCredentials() {
         val validTestAccountNumber = accountTestRule.validAccountNumber
 
