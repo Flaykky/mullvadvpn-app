@@ -396,14 +396,15 @@ pub async fn test_dns_config_custom_public(
 
     log::debug!("Setting custom DNS resolver to {custom_ip}");
 
+    let dns_options = settings::DnsOptions {
+        custom_options: settings::CustomDnsOptions {
+            addresses: vec![custom_ip],
+        },
+        state: settings::DnsState::Custom,
+        ..Default::default()
+    };
     mullvad_client
-        .set_dns_options(settings::DnsOptions {
-            default_options: settings::DefaultDnsOptions::default(),
-            custom_options: settings::CustomDnsOptions {
-                addresses: vec![custom_ip],
-            },
-            state: settings::DnsState::Custom,
-        })
+        .set_dns_options(dns_options)
         .await
         .context("failed to configure DNS server")?;
 
@@ -614,7 +615,7 @@ async fn run_dns_config_test<
     let handle = tokio::spawn(async move {
         // Resolve a "random" domain name to prevent caching.
         // Try multiple times, as the DNS config change may not take effect immediately.
-        for _ in 0..2 {
+        for _ in 0..5 {
             let _ = rpc_client
                 .resolve_hostname(format!("test{}.mullvad.net", next_nonce()))
                 .await;
