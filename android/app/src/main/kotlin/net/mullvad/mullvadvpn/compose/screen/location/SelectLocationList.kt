@@ -44,6 +44,7 @@ private typealias Content = Lce.Content<SelectLocationListUiState>
 
 @Composable
 fun SelectLocationList(
+    modifier: Modifier,
     backgroundColor: Color,
     relayListType: RelayListType,
     onSelectRelay: (RelayItem) -> Unit,
@@ -66,7 +67,8 @@ fun SelectLocationList(
     }
     LazyColumn(
         modifier =
-            Modifier.fillMaxSize()
+            modifier
+                .fillMaxSize()
                 .drawVerticalScrollbar(
                     lazyListState,
                     MaterialTheme.colorScheme.onSurface.copy(alpha = AlphaScrollbar),
