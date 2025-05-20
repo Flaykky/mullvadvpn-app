@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -55,6 +56,7 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.result.ResultBackNavigator
 import com.ramcosta.composedestinations.result.ResultRecipient
 import com.ramcosta.composedestinations.result.onResult
+import kotlin.math.abs
 import kotlinx.coroutines.launch
 import net.mullvad.mullvadvpn.R
 import net.mullvad.mullvadvpn.compose.button.MullvadSegmentedEndButton
@@ -318,8 +320,20 @@ fun SelectLocationScreen(
                     Loading()
                 }
                 is Lc.Content -> {
+                    val pagerState =
+                        rememberPagerState(
+                            initialPage = state.value.relayListType.ordinal,
+                            pageCount = {
+                                if (state.value.multihopEnabled) {
+                                    RelayListType.entries.size
+                                } else {
+                                    1
+                                }
+                            },
+                        )
+
                     if (state.value.multihopEnabled) {
-                        MultihopBar(state.value.relayListType, onSelectRelayList)
+                        MultihopBar(pagerState, state.value.relayListType, onSelectRelayList)
                     }
 
                     AnimatedContent(
@@ -341,6 +355,7 @@ fun SelectLocationScreen(
                     }
 
                     RelayLists(
+                        pagerState,
                         state = state.value,
                         backgroundColor = backgroundColor,
                         onSelectRelay = onSelectRelay,
@@ -357,7 +372,11 @@ fun SelectLocationScreen(
 }
 
 @Composable
-private fun MultihopBar(relayListType: RelayListType, onSelectRelayList: (RelayListType) -> Unit) {
+private fun MultihopBar(
+    pagerState: PagerState,
+    relayListType: RelayListType,
+    onSelectRelayList: (RelayListType) -> Unit,
+) {
     SingleChoiceSegmentedButtonRow(
         modifier =
             Modifier.fillMaxWidth()
@@ -369,11 +388,19 @@ private fun MultihopBar(relayListType: RelayListType, onSelectRelayList: (RelayL
     ) {
         MullvadSegmentedStartButton(
             selected = relayListType == RelayListType.ENTRY,
+            selectedProgress =
+                1f -
+                    abs(pagerState.getOffsetDistanceInPages(RelayListType.ENTRY.ordinal))
+                        .coerceIn(0f..1f),
             onClick = { onSelectRelayList(RelayListType.ENTRY) },
             text = stringResource(id = R.string.entry),
         )
         MullvadSegmentedEndButton(
             selected = relayListType == RelayListType.EXIT,
+            selectedProgress =
+                1f -
+                    abs(pagerState.getOffsetDistanceInPages(RelayListType.EXIT.ordinal))
+                        .coerceIn(0f..1f),
             onClick = { onSelectRelayList(RelayListType.EXIT) },
             text = stringResource(id = R.string.exit),
         )
@@ -382,6 +409,7 @@ private fun MultihopBar(relayListType: RelayListType, onSelectRelayList: (RelayL
 
 @Composable
 private fun RelayLists(
+    pagerState: PagerState,
     state: SelectLocationUiState,
     backgroundColor: Color,
     onSelectRelay: (RelayItem) -> Unit,
@@ -389,14 +417,19 @@ private fun RelayLists(
     onUpdateBottomSheetState: (LocationBottomSheetState) -> Unit,
     onSelectRelayList: (RelayListType) -> Unit,
 ) {
-    val pagerState =
-        rememberPagerState(
-            initialPage = state.relayListType.ordinal,
-            pageCount = { RelayListType.entries.size },
-        )
 
     val focusRequesterEntry = remember { FocusRequester() }
     val focusRequesterExit = remember { FocusRequester() }
+
+    LaunchedEffect(pagerState.currentPage) {
+        onSelectRelayList(RelayListType.entries[pagerState.currentPage])
+        if (state.multihopEnabled) {
+            focusRequesterEntry.saveFocusedChild()
+        }
+
+        focusRequesterExit.saveFocusedChild()
+    }
+
     LaunchedEffect(state.relayListType) {
         val index = state.relayListType.ordinal
 
@@ -406,12 +439,6 @@ private fun RelayLists(
             RelayListType.ENTRY -> focusRequesterEntry.restoreFocusedChild()
             RelayListType.EXIT -> focusRequesterExit.restoreFocusedChild()
         }
-    }
-
-    LaunchedEffect(pagerState.currentPage) {
-        onSelectRelayList(RelayListType.entries[pagerState.currentPage])
-        focusRequesterEntry.saveFocusedChild()
-        focusRequesterExit.saveFocusedChild()
     }
 
     HorizontalPager(
