@@ -54,10 +54,20 @@ pub trait AppDownloader: Send {
 const INSTALLER_STARTUP_TIMEOUT: Duration = Duration::from_millis(500);
 
 /// Download the app and signature, and verify the app's signature
-pub async fn install_and_upgrade(mut downloader: impl AppDownloader) -> Result<(), DownloadError> {
+pub async fn download_install_and_upgrade(
+    mut downloader: impl AppDownloader,
+) -> Result<(), DownloadError> {
     downloader.download_executable().await?;
     downloader.verify().await?;
     downloader.install().await
+}
+
+/// Verify the app's signature and install the app
+pub async fn install_and_upgrade(
+    mut installer: impl DownloadedInstaller + VerifiedInstaller,
+) -> Result<(), DownloadError> {
+    let _installer = installer.verify().await?;
+    _installer.install().await
 }
 
 #[derive(Clone)]
