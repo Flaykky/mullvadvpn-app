@@ -10,8 +10,6 @@ pub const PRODUCT_NAME: &str = "mullvad-vpn";
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum Permissions {
-    /// Do not set any particular permissions. They will be inherited instead.
-    Any,
     /// Only root should have write access. Other users will have
     /// read and execute permissions (0o755).
     ReadExecOnly,
@@ -20,7 +18,6 @@ pub enum Permissions {
 impl Permissions {
     fn fs_permissions(self) -> Option<fs::Permissions> {
         match self {
-            Permissions::Any => None,
             Permissions::ReadExecOnly => Some(std::os::unix::fs::PermissionsExt::from_mode(0o755)),
         }
     }
