@@ -60,7 +60,7 @@ pub fn get_allusersprofile_dir() -> Result<PathBuf> {
 /// permissions set.
 pub fn create_dir(path: PathBuf, set_security_permissions: bool) -> Result<PathBuf> {
     if set_security_permissions {
-        create_dir_with_permissions_recursive(&path)?;
+        create_dir_recursive_with_permissions(&path, UserPermissions::read_only())?;
     } else {
         std::fs::create_dir_all(&path).map_err(|e| {
             Error::CreateDirFailed(
