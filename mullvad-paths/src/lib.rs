@@ -54,9 +54,6 @@ pub enum Error {
 use unix::create_dir;
 
 #[cfg(windows)]
-pub const PRODUCT_NAME: &str = "Mullvad VPN";
-
-#[cfg(windows)]
 fn get_allusersprofile_dir() -> Result<PathBuf> {
     match std::env::var_os("ALLUSERSPROFILE") {
         Some(dir) => Ok(PathBuf::from(&dir)),
