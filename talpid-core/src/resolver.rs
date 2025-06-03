@@ -57,8 +57,8 @@ use tokio::{
 pub static LOCAL_DNS_RESOLVER: LazyLock<bool> = LazyLock::new(|| {
     let disable_local_dns_resolver = std::env::var("TALPID_DISABLE_LOCAL_DNS_RESOLVER")
         .map(|v| v != "0")
-        // Use the local DNS resolver by default.
-        .unwrap_or(false);
+        // Disable the local DNS resolver by default.
+        .unwrap_or(true);
 
     if !disable_local_dns_resolver {
         log::debug!("Using local DNS resolver");
