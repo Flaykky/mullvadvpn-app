@@ -12,7 +12,7 @@ workspace = true
 
 [dependencies]
 futures = { workspace = true }
-tokio = { workspace = true, features =  ["rt", "net"] }
+tokio = { workspace = true, features =  ["net", "rt", "time"] }
 
 [target.'cfg(windows)'.dependencies]
-windows-sys = { workspace = true }
+windows-sys = { workspace = true, features = ["Win32_Foundation"] }
