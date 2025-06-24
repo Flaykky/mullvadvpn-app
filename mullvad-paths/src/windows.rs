@@ -77,7 +77,7 @@ struct Handle(HANDLE);
 
 impl Drop for Handle {
     fn drop(&mut self) {
-        if self.0 != 0 && self.0 != INVALID_HANDLE_VALUE {
+        if !self.0.is_null() && self.0 != INVALID_HANDLE_VALUE {
             unsafe {
                 CloseHandle(self.0);
             }
@@ -318,7 +318,8 @@ fn get_system_user_token() -> io::Result<Handle> {
     let thread_token = get_current_thread_token()?;
 
     if is_local_system_user_token(thread_token.0)? {
-        return Ok(Handle(0));
+        let handle = Handle(ptr::null_mut());
+        return Ok(handle);
     }
 
     let system_debug_priv = WideCString::from_str("SeDebugPrivilege").unwrap();
@@ -345,7 +346,7 @@ fn get_system_user_token() -> io::Result<Handle> {
 }
 
 fn open_process_token(process: HANDLE, access: u32) -> io::Result<Handle> {
-    let mut process_token = 0;
+    let mut process_token: HANDLE = ptr::null_mut();
     if unsafe { OpenProcessToken(process, access, &mut process_token) } == 0 {
         return Err(io::Error::last_os_error());
     }
@@ -354,13 +355,13 @@ fn open_process_token(process: HANDLE, access: u32) -> io::Result<Handle> {
 
 /// If all else fails, infer the AppData path from the system directory.
 fn infer_appdata_from_system_directory() -> io::Result<PathBuf> {
-    let mut sysdir = get_known_folder_path(&FOLDERID_System, KF_FLAG_DEFAULT, 0)?;
+    let mut sysdir = get_known_folder_path(&FOLDERID_System, KF_FLAG_DEFAULT, ptr::null_mut())?;
     sysdir.extend(["config", "systemprofile", "AppData", "Local"]);
     Ok(sysdir)
 }
 
 fn get_current_thread_token() -> std::io::Result<Handle> {
-    let mut token_handle: HANDLE = 0;
+    let mut token_handle: HANDLE = ptr::null_mut();
     if unsafe {
         OpenThreadToken(
             GetCurrentThread(),
@@ -470,7 +471,7 @@ fn find_process<T>(handle_process: impl Fn(HANDLE) -> Option<T>) -> io::Result<T
         .find_map(|process| {
             let process_handle =
                 Handle(unsafe { OpenProcess(PROCESS_QUERY_INFORMATION, 0, process) });
-            if process_handle.0 == 0 {
+            if process_handle.0.is_null() {
                 return None;
             }
             handle_process(process_handle.0)

@@ -6,6 +6,7 @@ use crate::debounce::BurstGuard;
 
 use std::{
     ffi::c_void,
+    ptr,
     sync::{Arc, Mutex},
     time::Duration,
 };
@@ -240,7 +241,7 @@ impl DefaultRouteMonitor {
         // we cancel the callbacks. This will leak the weak pointer but the context state itself
         // will be correctly dropped when DefaultRouteManager is dropped.
         let context_ptr = context_and_burst;
-        let mut handle_ptr = 0;
+        let mut handle_ptr: HANDLE = ptr::null_mut();
         // SAFETY: No clear safety specifications, context_ptr must be valid for as long as handle
         // has not been dropped.
         win32_err!(unsafe {
@@ -255,7 +256,7 @@ impl DefaultRouteMonitor {
         .map_err(Error::RegisterNotifyRouteCallback)?;
         let notify_route_change_handle = NotifyChangeHandle(handle_ptr);
 
-        let mut handle_ptr = 0;
+        let mut handle_ptr: HANDLE = ptr::null_mut();
         // SAFETY: No clear safety specifications, context_ptr must be valid for as long as handle
         // has not been dropped.
         win32_err!(unsafe {
@@ -270,7 +271,7 @@ impl DefaultRouteMonitor {
         .map_err(Error::RegisterNotifyIpInterfaceCallback)?;
         let notify_interface_change_handle = NotifyChangeHandle(handle_ptr);
 
-        let mut handle_ptr = 0;
+        let mut handle_ptr: HANDLE = ptr::null_mut();
         // SAFETY: No clear safety specifications, context_ptr must be valid for as long as handle
         // has not been dropped.
         win32_err!(unsafe {

@@ -140,7 +140,7 @@ pub fn open_process(
 ) -> Result<WinHandle, io::Error> {
     let handle = unsafe { OpenProcess(access as u32, if inherit_handle { 1 } else { 0 }, pid) };
 
-    if handle == 0 {
+    if handle.is_null() {
         return Err(io::Error::last_os_error());
     }
     Ok(WinHandle(handle))

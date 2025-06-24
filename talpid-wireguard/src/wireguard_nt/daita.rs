@@ -394,7 +394,7 @@ impl Machinist {
 
         let wait_events = [
             self.quit_event.as_raw(),
-            self.daita.event_data_available_event() as isize,
+            self.daita.event_data_available_event(),
         ];
 
         let mut event_buffer: [Event; EVENTS_CAPACITY] = unsafe { std::mem::zeroed() };

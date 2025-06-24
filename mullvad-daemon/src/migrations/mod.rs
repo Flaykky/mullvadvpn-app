@@ -240,11 +240,11 @@ mod windows {
     use talpid_types::ErrorExt;
     use tokio::fs;
     use windows_sys::Win32::{
-        Foundation::{LocalFree, ERROR_SUCCESS, PSID},
+        Foundation::{LocalFree, ERROR_SUCCESS},
         Security::{
             Authorization::{GetNamedSecurityInfoW, SE_FILE_OBJECT, SE_OBJECT_TYPE},
             IsWellKnownSid, WinBuiltinAdministratorsSid, WinLocalSystemSid,
-            OWNER_SECURITY_INFORMATION, PSECURITY_DESCRIPTOR, SECURITY_DESCRIPTOR, SID,
+            OWNER_SECURITY_INFORMATION, PSECURITY_DESCRIPTOR, PSID, SECURITY_DESCRIPTOR, SID,
             WELL_KNOWN_SID_TYPE,
         },
     };

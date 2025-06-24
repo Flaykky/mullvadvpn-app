@@ -707,9 +707,14 @@ impl WgNtDll {
         let wg_nt_dll =
             U16CString::from_os_str_truncate(resource_dir.join("mullvad-wireguard.dll"));
 
-        let handle =
-            unsafe { LoadLibraryExW(wg_nt_dll.as_ptr(), 0, LOAD_WITH_ALTERED_SEARCH_PATH) };
-        if handle == 0 {
+        let handle = unsafe {
+            LoadLibraryExW(
+                wg_nt_dll.as_ptr(),
+                ptr::null_mut(),
+                LOAD_WITH_ALTERED_SEARCH_PATH,
+            )
+        };
+        if handle.is_null() {
             return Err(io::Error::last_os_error());
         }
         Self::new_inner(handle, Self::get_proc_address)

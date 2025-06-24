@@ -13,14 +13,14 @@ use std::{
 };
 use talpid_types::ErrorExt;
 use talpid_windows::process::{ModuleEntry, ProcessSnapshot};
-use winapi::vc::excpt::EXCEPTION_EXECUTE_HANDLER;
 use windows_sys::Win32::{
     Foundation::HANDLE,
     System::{
         Diagnostics::{
             Debug::{
                 MiniDumpNormal, MiniDumpWriteDump, SetUnhandledExceptionFilter, CONTEXT,
-                EXCEPTION_POINTERS, EXCEPTION_RECORD, MINIDUMP_EXCEPTION_INFORMATION,
+                EXCEPTION_EXECUTE_HANDLER, EXCEPTION_POINTERS, EXCEPTION_RECORD,
+                MINIDUMP_EXCEPTION_INFORMATION,
             },
             ToolHelp::TH32CS_SNAPMODULE,
         },

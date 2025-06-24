@@ -1,12 +1,13 @@
 #![allow(clippy::undocumented_unsafe_blocks)] // Remove me if you dare.
 
-use socket2::SockAddr;
+use socket2::{SockAddr, SockAddrStorage};
 use std::{
     ffi::{OsStr, OsString},
     fmt, io,
     mem::{self, MaybeUninit},
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6},
     os::windows::ffi::{OsStrExt, OsStringExt},
+    ptr,
     sync::Mutex,
     time::{Duration, Instant},
 };
@@ -31,7 +32,6 @@ use windows_sys::{
             IpDadStateDeprecated, IpDadStateDuplicate, IpDadStateInvalid, IpDadStatePreferred,
             IpDadStateTentative, AF_INET, AF_INET6, AF_UNSPEC, IN6_ADDR, IN_ADDR, NL_DAD_STATE,
             SOCKADDR_IN as sockaddr_in, SOCKADDR_IN6 as sockaddr_in6, SOCKADDR_INET,
-            SOCKADDR_STORAGE as sockaddr_storage,
         },
     },
 };
@@ -174,7 +174,7 @@ pub fn notify_ip_interface_change<'a, T: FnMut(&MIB_IPINTERFACE_ROW, i32) + Send
 ) -> io::Result<Box<IpNotifierHandle<'a>>> {
     let mut context = Box::new(IpNotifierHandle {
         callback: Mutex::new(Box::new(callback)),
-        handle: 0,
+        handle: ptr::null_mut(),
     });
 
     win32_err!(unsafe {
@@ -350,7 +350,7 @@ pub fn get_unicast_table(
     family: Option<AddressFamily>,
 ) -> io::Result<Vec<MIB_UNICASTIPADDRESS_ROW>> {
     let mut unicast_rows = vec![];
-    let mut unicast_table: *mut MIB_UNICASTIPADDRESS_TABLE = std::ptr::null_mut();
+    let mut unicast_table: *mut MIB_UNICASTIPADDRESS_TABLE = ptr::null_mut();
 
     win32_err!(unsafe {
         GetUnicastIpAddressTable(af_family_from_family(family), &mut unicast_table)
@@ -447,8 +447,8 @@ pub fn inet_sockaddr_from_socketaddr(addr: SocketAddr) -> SOCKADDR_INET {
 pub fn try_socketaddr_from_inet_sockaddr(addr: SOCKADDR_INET) -> Result<SocketAddr> {
     // SAFETY: si_family is always valid
     let family = unsafe { addr.si_family };
+    let mut storage = SockAddrStorage::zeroed();
     unsafe {
-        let mut storage: sockaddr_storage = mem::zeroed();
         *(&mut storage as *mut _ as *mut SOCKADDR_INET) = addr;
         SockAddr::new(storage, mem::size_of_val(&addr) as i32)
     }

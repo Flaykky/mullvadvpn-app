@@ -23,7 +23,7 @@ impl Event {
                 ptr::null(),
             )
         };
-        if event == 0 {
+        if event.is_null() {
             return Err(io::Error::last_os_error());
         }
         Ok(Self(event))
@@ -44,7 +44,7 @@ impl Event {
 
     /// Duplicate the event object with `DuplicateHandle()`
     pub fn duplicate(&self) -> io::Result<Event> {
-        let mut new_event = 0;
+        let mut new_event: HANDLE = ptr::null_mut();
         let status = unsafe {
             DuplicateHandle(
                 GetCurrentProcess(),
