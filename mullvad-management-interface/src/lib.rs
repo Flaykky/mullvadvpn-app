@@ -1,14 +1,10 @@
 pub mod client;
 pub mod types;
 
-use parity_tokio_ipc::Endpoint as IpcEndpoint;
 #[cfg(unix)]
 use std::{env, fs, os::unix::fs::PermissionsExt};
 use std::{
-    future::Future,
-    io,
-    pin::Pin,
-    task::{Context, Poll},
+    future::Future, io, pin::Pin, task::{Context, Poll}
 };
 use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
 use tonic::transport::{server::Connected, Server};
@@ -16,6 +12,8 @@ use tonic::transport::{server::Connected, Server};
 use tonic::transport::{Endpoint, Uri};
 #[cfg(not(target_os = "android"))]
 use tower::service_fn;
+
+use talpid_ipc as ipc;
 
 pub use tonic::{async_trait, transport::Channel, Code, Request, Response, Status};
 
@@ -124,7 +122,7 @@ pub async fn new_rpc_client() -> Result<ManagementServiceClient, Error> {
     // The URI will be ignored
     let channel = Endpoint::from_static("lttp://[::]:50051")
         .connect_with_connector(service_fn(move |_: Uri| {
-            IpcEndpoint::connect(ipc_path.clone()).map_ok(hyper_util::rt::tokio::TokioIo::new)
+            ipc::IpcEndpoint::connect(ipc_path.clone()).map_ok(hyper_util::rt::tokio::TokioIo::new)
         }))
         .await
         .map_err(Error::GrpcTransportError)?;
@@ -143,8 +141,9 @@ pub fn spawn_rpc_server<T: ManagementService, F: Future<Output = ()> + Send + 's
     rpc_socket_path: impl AsRef<std::path::Path>,
 ) -> std::result::Result<ServerJoinHandle, Error> {
     use futures::stream::TryStreamExt;
-    use parity_tokio_ipc::SecurityAttributes;
+    // use parity_tokio_ipc::SecurityAttributes;
 
+    /*
     let mut endpoint = IpcEndpoint::new(rpc_socket_path.as_ref().to_string_lossy().to_string());
     endpoint.set_security_attributes(
         SecurityAttributes::allow_everyone_create()
@@ -152,7 +151,12 @@ pub fn spawn_rpc_server<T: ManagementService, F: Future<Output = ()> + Send + 's
             .set_mode(0o766)
             .map_err(Error::SecurityAttributes)?,
     );
+
     let incoming = endpoint.incoming().map_err(Error::StartServerError)?;
+    */
+    // :: Stream<Item = Result<impl AsyncRead + AsyncWrite>> + 'static
+    let endpoint = ipc::IpcEndpoint::new(rpc_socket_path.as_ref().to_string_lossy().to_string());
+    let incoming = endpoint.incoming().unwrap(); // TODO: Do not unwrap
 
     #[cfg(unix)]
     if let Some(group_name) = &*MULLVAD_MANAGEMENT_SOCKET_GROUP {

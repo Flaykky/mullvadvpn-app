@@ -37,6 +37,7 @@ members = [
   "talpid-core",
   "talpid-dbus",
   "talpid-future",
+  "talpid-ipc",
   "talpid-macos",
   "talpid-net",
   "talpid-openvpn",
@@ -84,7 +85,6 @@ implicit_clone = "warn"
 
 [workspace.dependencies]
 tokio = { version = "1.44" }
-parity-tokio-ipc = "0.9"
 futures = "0.3.15"
 vec1 = "1.12"
 sha2 = "0.10"

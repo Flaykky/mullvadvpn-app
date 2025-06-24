@@ -766,7 +766,6 @@ async fn join_return_first<R>(
 
 mod event_server {
     use futures::stream::TryStreamExt;
-    use parity_tokio_ipc::Endpoint as IpcEndpoint;
     use std::{
         collections::{HashMap, HashSet},
         pin::Pin,
@@ -776,6 +775,7 @@ mod event_server {
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     use talpid_types::net::proxy::CustomProxy;
     use talpid_types::ErrorExt;
+    use talpid_ipc::IpcEndpoint;
     use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
     use tonic::{
         transport::{server::Connected, Server},

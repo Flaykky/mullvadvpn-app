@@ -2,7 +2,7 @@ use super::{Arguments, Error};
 use std::collections::HashMap;
 
 use futures::TryFutureExt;
-use parity_tokio_ipc::Endpoint as IpcEndpoint;
+use talpid_ipc::IpcEndpoint;
 use tokio::runtime::{self, Runtime};
 use tonic::transport::{Endpoint, Uri};
 use tower::service_fn;

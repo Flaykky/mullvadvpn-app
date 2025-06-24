@@ -14,15 +14,16 @@ workspace = true
 crate-type = ["cdylib"]
 
 [dependencies]
+talpid-types = { path = "../talpid-types" }
+talpid-ipc = { path = "../talpid-ipc" }
+
 thiserror = { workspace = true }
 log = { workspace = true }
 env_logger = { workspace = true }
 
 openvpn-plugin = { version = "0.4.2", features = ["serde", "log", "auth-failed-event"] }
-talpid-types = { path = "../talpid-types" }
 
 tokio = { workspace = true, features =  ["rt"] }
-parity-tokio-ipc = { workspace = true }
 tonic = { workspace = true }
 tower = { workspace = true }
 prost = { workspace = true }
@@ -42,10 +43,6 @@ workspace = true
 features = [
     "Win32_System_SystemServices",
 ]
-
-[target.'cfg(windows)'.dependencies]
-# parity-tokio-ipc has an implicit dependency on winapi's winerror feature.
-winapi = { version = "0.3", features = ["winerror"] }
 
 [package.metadata.winres]
 ProductName = "Mullvad VPN"
