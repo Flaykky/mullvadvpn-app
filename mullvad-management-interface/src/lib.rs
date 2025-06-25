@@ -4,7 +4,10 @@ pub mod types;
 #[cfg(unix)]
 use std::{env, fs, os::unix::fs::PermissionsExt};
 use std::{
-    future::Future, io, pin::Pin, task::{Context, Poll}
+    future::Future,
+    io,
+    pin::Pin,
+    task::{Context, Poll},
 };
 use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
 use tonic::transport::{server::Connected, Server};
@@ -141,7 +144,6 @@ pub fn spawn_rpc_server<T: ManagementService, F: Future<Output = ()> + Send + 's
     rpc_socket_path: impl AsRef<std::path::Path>,
 ) -> std::result::Result<ServerJoinHandle, Error> {
     use futures::stream::TryStreamExt;
-    // use parity_tokio_ipc::SecurityAttributes;
 
     /*
     let mut endpoint = IpcEndpoint::new(rpc_socket_path.as_ref().to_string_lossy().to_string());

@@ -16,3 +16,6 @@ tokio = { workspace = true, features =  ["net", "rt", "time"] }
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { workspace = true, features = ["Win32_Foundation"] }
+
+[target.'cfg(unix)'.dependencies]
+nix = { workspace = true, features = ["fs"] }

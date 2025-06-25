@@ -109,8 +109,13 @@ impl IpcEndpoint {
     pub fn incoming(
         self,
     ) -> Result<impl Stream<Item = Result<impl AsyncRead + AsyncWrite>> + 'static> {
-        // TODO: Security attributes?
+        use nix::sys::stat::{fchmod, Mode};
+
         let uds = tokio::net::UnixListener::bind(&self.path)?;
+        // TODO: Security attributes?
+        // Change permissions on UDS
+        const MODE: Mode = Mode::from_bits(0o766).unwrap();
+        fchmod(&uds, MODE).unwrap();
         let incoming = Incoming {
             path: self.path.clone(),
             listener: uds,
