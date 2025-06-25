@@ -114,8 +114,9 @@ impl IpcEndpoint {
         let uds = tokio::net::UnixListener::bind(&self.path)?;
         // TODO: Security attributes?
         // Change permissions on UDS
-        const MODE: Mode = Mode::from_bits(0o766).unwrap();
+        const MODE: Mode = Mode::from_bits(0o666).unwrap();
         fchmod(&uds, MODE).unwrap();
+        unsafe { nix::libc::chmod(self.path.as_ptr().cast(), 0o666) };
         let incoming = Incoming {
             path: self.path.clone(),
             listener: uds,
