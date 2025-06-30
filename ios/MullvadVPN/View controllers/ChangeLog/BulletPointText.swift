@@ -10,9 +10,10 @@ import SwiftUI
 struct BulletPointText: View {
     let text: String
     let bullet = "•"
+    @Environment(\.layoutDirection) private var layoutDirection
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline) {
+        ReversibleHStack {
             Text(bullet)
                 .font(.body)
                 .foregroundColor(UIColor.secondaryTextColor.color)
@@ -20,8 +21,6 @@ struct BulletPointText: View {
                 .font(.body)
                 .foregroundColor(UIColor.secondaryTextColor.color)
                 .lineLimit(nil)
-                .multilineTextAlignment(.leading)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

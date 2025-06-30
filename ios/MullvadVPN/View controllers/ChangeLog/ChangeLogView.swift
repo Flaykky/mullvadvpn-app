@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ChangeLogView<ViewModel>: View where ViewModel: ChangeLogViewModelProtocol {
     @ObservedObject var viewModel: ViewModel
+    @StateObject var languageManager = LanguageManager()
 
     init(viewModel: ViewModel) {
         self.viewModel = viewModel
@@ -35,6 +36,8 @@ struct ChangeLogView<ViewModel>: View where ViewModel: ChangeLogViewModelProtoco
             }
             .padding(.horizontal, 24.0)
         }
+        .environment(\.locale, languageManager.selectedLocale)
+        .environment(\.layoutDirection, languageManager.layoutDirection)
         .onAppear {
             viewModel.getLatestChanges()
         }
