@@ -53,36 +53,32 @@ struct MullvadPrimaryTextField: View {
                     isEnabled ? Color.MullvadTextField.background : Color.MullvadTextField
                         .backgroundDisabled)
                 .foregroundColor(isEnabled ? .MullvadTextField.textInput : .MullvadTextField.textDisabled)
-                .clipShape(
-                    RoundedCorner(
-                        cornerRadius: 4,
-                        corners: !showSuggestion ? [.allCorners] : [
-                            .topLeft,
-                            .topRight
-                        ]
-                    )
-                )
                 .overlay {
                     if isFocused {
                         RoundedCorner(cornerRadius: 4,
                                       corners: !showSuggestion ? [.allCorners] : [
                                           .topLeft,
                                           .topRight
-                                      ], insertBy: 1)
-                            .stroke(
-                                isValid ? Color.MullvadTextField.borderFocused : Color.MullvadTextField.borderError,
-                                lineWidth: 2
-                            )
+                                      ])
+                                      .stroke(
+                                          isValid ? Color.MullvadTextField.borderFocused : Color.MullvadTextField.borderError,
+                                          lineWidth: 4
+                                      )
                     } else if isEnabled {
                         RoundedCorner(cornerRadius: 4,
                                       corners: !showSuggestion ? [.allCorners] : [
                                           .topLeft,
                                           .topRight
-                                      ], insertBy: 0.5)
-                            .stroke(isValid ? Color.MullvadTextField.border : Color.MullvadTextField.borderError,
-                                    lineWidth: 1)
+                                      ])
+                                      .stroke(isValid ? Color.MullvadTextField.border : Color.MullvadTextField.borderError,
+                                              lineWidth: 2)
                     }
                 }
+                .clipShape(RoundedCorner(cornerRadius: 4,
+                                         corners: !showSuggestion ? [.allCorners] : [
+                                             .topLeft,
+                                             .topRight
+                                         ]))
 
                 if showSuggestion,
                    let suggestion {
@@ -111,7 +107,7 @@ struct MullvadPrimaryTextField: View {
                 }
             }
             .clipShape(
-                RoundedRectangle(cornerRadius: 4)
+                RoundedCorner(cornerRadius: 4)
             )
         }
     }
@@ -160,6 +156,56 @@ private struct RoundedCorner: Shape {
             .disabled(true)
         }
         .padding()
-        .background(Color.mullvadBackground)
+        .background(Color.red)
     }
+}
+
+class UIMullvadPrimaryTextField: UIHostingController<MullvadPrimaryTextField> {
+    let label: String
+    let placeholder: String
+    var text: String = ""
+    var onTextChange: ((String) -> Void)?
+
+    init(label: String, placeholder: String) {
+        self.label = label
+        self.placeholder = placeholder
+        super.init(rootView: MullvadPrimaryTextField(
+            label: label,
+            placeholder: placeholder,
+            text: .constant("")
+        )
+        )
+    }
+
+    override func viewDidLoad() {
+        rootView = MullvadPrimaryTextField(
+            label: label,
+            placeholder: placeholder,
+            text: .init(get: {
+                self.text
+            }, set: { newText in
+                self.text = newText
+                self.onTextChange?(newText)
+            })
+        )
+        view.backgroundColor = .clear
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("Not implemented")
+    }
+}
+
+struct UIMullvadPrimaryTextFieldRepresentable: UIViewRepresentable {
+    func makeUIView(context: Context) -> some UIView {
+        UIMullvadPrimaryTextField(label: "Label", placeholder: "Placeholder").view
+    }
+
+    func updateUIView(_ uiView: UIViewType, context: Context) {}
+}
+
+#Preview {
+    UIMullvadPrimaryTextFieldRepresentable()
+        .padding()
+        .background(Color.red)
 }
