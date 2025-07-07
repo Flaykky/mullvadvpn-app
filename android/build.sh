@@ -5,6 +5,8 @@ set -eu
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$SCRIPT_DIR"
 
+git status
+
 if test -n "$(git status --porcelain)"; then
     echo "Dirty working directory! Will not accept that for an official release."
     exit 1
