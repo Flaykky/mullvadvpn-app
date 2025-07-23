@@ -8,7 +8,8 @@ use ssh2::{File, Session};
 use std::{
     io::{self, Read},
     net::{IpAddr, SocketAddr, TcpStream},
-    path::{Path, PathBuf},
+    path::{Path, PathBuf}, time::Instant,
+    time::Duration,
 };
 use test_rpc::UNPRIVILEGED_USER;
 
@@ -102,7 +103,21 @@ fn blocking_ssh(
         OsType::Macos | OsType::Linux => r"/tmp/",
     };
 
-    let stream = TcpStream::connect(SocketAddr::new(guest_ip, 22)).context("TCP connect failed")?;
+    const TCP_TIMEOUT_DURATION: Duration = Duration::from_secs(30);
+    let started = Instant::now();
+    let stream = loop {
+        match TcpStream::connect(SocketAddr::new(guest_ip, 22)) {
+            Ok(stream) => break stream,
+            Err(error) if started.elapsed() >= TCP_TIMEOUT_DURATION => {
+                return Err(error).context("TCP connect failed")?;
+            }
+            // Retry if connecting fails for some reason
+            Err(_error) => {
+                log::warn!("Failed to connect to SSH server, retrying...");
+                std::thread::sleep(Duration::from_secs(1));
+            }
+        }
+    };
 
     let mut session = Session::new().context("Failed to connect to SSH server")?;
     session.set_tcp_stream(stream);
