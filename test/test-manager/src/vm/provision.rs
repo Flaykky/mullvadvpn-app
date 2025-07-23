@@ -64,14 +64,24 @@ async fn provision_ssh(
     let local_app_manifest = local_app_manifest.to_owned();
 
     let remote_dir = tokio::task::spawn_blocking(move || {
-        blocking_ssh(
-            user,
-            password,
-            guest_ip,
-            os_type,
-            &local_runner_dir,
-            local_app_manifest,
-        )
+        const SSH_TIMEOUT: Duration = Duration::from_secs(120);
+        let started = Instant::now();
+        loop {
+            let last_result = blocking_ssh(
+                user.clone(),
+                password.clone(),
+                guest_ip,
+                os_type,
+                &local_runner_dir,
+                local_app_manifest.clone(),
+            );
+            if last_result.is_err() && started.elapsed() < SSH_TIMEOUT {
+                log::warn!("Failed to provision over SSH, retrying...");
+                std::thread::sleep(Duration::from_secs(1));
+                continue;
+            }
+            break last_result;
+        }
     })
     .await
     .context("Failed to join SSH task")??;
@@ -103,21 +113,7 @@ fn blocking_ssh(
         OsType::Macos | OsType::Linux => r"/tmp/",
     };
 
-    const TCP_TIMEOUT_DURATION: Duration = Duration::from_secs(30);
-    let started = Instant::now();
-    let stream = loop {
-        match TcpStream::connect(SocketAddr::new(guest_ip, 22)) {
-            Ok(stream) => break stream,
-            Err(error) if started.elapsed() >= TCP_TIMEOUT_DURATION => {
-                return Err(error).context("TCP connect failed")?;
-            }
-            // Retry if connecting fails for some reason
-            Err(_error) => {
-                log::warn!("Failed to connect to SSH server, retrying...");
-                std::thread::sleep(Duration::from_secs(1));
-            }
-        }
-    };
+    let stream = TcpStream::connect(SocketAddr::new(guest_ip, 22)).context("TCP connect failed")?;
 
     let mut session = Session::new().context("Failed to connect to SSH server")?;
     session.set_tcp_stream(stream);
