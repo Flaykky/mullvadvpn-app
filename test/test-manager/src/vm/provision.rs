@@ -8,8 +8,9 @@ use ssh2::{File, Session};
 use std::{
     io::{self, Read},
     net::{IpAddr, SocketAddr, TcpStream},
-    path::{Path, PathBuf}, time::Instant,
+    path::{Path, PathBuf},
     time::Duration,
+    time::Instant,
 };
 use test_rpc::UNPRIVILEGED_USER;
 
